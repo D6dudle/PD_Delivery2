@@ -73,7 +73,7 @@ public class AuthenticationThread extends Thread implements ServerUtils {
                     if (authenticationRequestData.getRegister())
                         authenticationResponseData = register(authenticationRequestData, dP.getAddress().getHostAddress());
                     else
-                        authenticationResponseData = logIn(authenticationRequestData);
+                        authenticationResponseData = logIn(authenticationRequestData, dP.getAddress().getHostAddress());
 
                     // Add (or not) a new client
                     // (when not a rebalance operation as response and when the operation is a success, as the validation as it is a register is above)
@@ -191,18 +191,18 @@ public class AuthenticationThread extends Thread implements ServerUtils {
         }
     }
 
-    //TODO: update ao ip e talvez porto do user
     /**
      * LogIn operation
      * @param authenticationRequestData
      * @return an AuthenticationResponseData with information based on the login information
      * @throws SQLException
      */
-    public AuthenticationResponseData logIn(AuthenticationRequestData authenticationRequestData) throws SQLException {
+    public AuthenticationResponseData logIn(AuthenticationRequestData authenticationRequestData, String userIp) throws SQLException {
         if (clientExists(authenticationRequestData))
             return new AuthenticationResponseData(false, false, "You are already logged in!");
 
         if (isPasswordValid(authenticationRequestData)) {
+            serverDbLink.updateUser(authenticationRequestData.getUsername(), userIp);
             return new AuthenticationResponseData(false, true, "LogIn operation successful!", serverStorageData.getServerIpTCP(), serverStorageData.getPortTCP());
         }
         else {

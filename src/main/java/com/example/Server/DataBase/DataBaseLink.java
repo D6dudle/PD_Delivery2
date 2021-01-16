@@ -61,6 +61,15 @@ public class DataBaseLink implements DataBaseUtils, DataBaseQueries, InsertQueri
         ps.close();
     }
 
+    public void updateUser(String userName, String userIp) throws SQLException {
+        PreparedStatement ps = dbConnection.prepareStatement(UPDATE_USER_IP);
+        ps.setString(1, userIp);
+        ps.setLong(2, getUserIdByName(userName));
+
+        ps.executeUpdate();
+        ps.close();
+    }
+
     /**
      * Checks if a user is already registered or not
      * @param userName

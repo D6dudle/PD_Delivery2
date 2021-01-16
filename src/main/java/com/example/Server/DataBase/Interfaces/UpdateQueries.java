@@ -16,4 +16,8 @@ public interface UpdateQueries {
     String UPDATE_CHANNEL_DELETED = "UPDATE " + CHANNEL_TABLE_NAME +
             " SET " + CHANNEL_IS_DELETED + " = 1" +
             " WHERE " + CHANNEL_ID + " = ?";
+
+    String UPDATE_USER_IP = "UPDATE " + USER_TABLE_NAME +
+            " SET " + USER_IP + " = ?" +
+            " WHERE " + USER_ID + " = ?";
 }

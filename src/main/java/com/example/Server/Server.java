@@ -125,13 +125,24 @@ public class Server extends UnicastRemoteObject implements RemoteServer, ServerU
     @Override
     public boolean registerObserver(RemoteObserver remoteObserver) {
         System.out.println("A registar observer... " + remoteObserver);
-        if(serverStorageData.getRemoteObservers().size() <= 0 ||
-                !serverStorageData.getRemoteObservers().contains(remoteObserver)){
-            serverStorageData.getRemoteObservers().add(remoteObserver);
-            System.out.println("serverStorageData.getRemoteObservers() --->" + serverStorageData.getRemoteObservers());
-            return true;
-        }
-        else{
+        try {
+            if(serverStorageData.getRemoteObservers().size() <= 0 ||
+                    !serverStorageData.getRemoteObservers().contains(remoteObserver)){
+
+                    if(!serverDbLink.isRegistered("Observer")){
+                        serverDbLink.saveUser("Observer", "", "", "");
+                    }
+
+                    serverStorageData.getRemoteObservers().add(remoteObserver);
+
+                System.out.println("serverStorageData.getRemoteObservers() --->" + serverStorageData.getRemoteObservers());
+                return true;
+            }
+            else{
+                return false;
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
             return false;
         }
     }
@@ -152,14 +163,20 @@ public class Server extends UnicastRemoteObject implements RemoteServer, ServerU
 
     @Override
     public void sendMessageToAllClients(MessageRequest messageRequest) throws IOException {
-        MessageData newMessage = new MessageData(messageRequest.getMessage(),
-                "Observer",
-                null,
-                null,
-                LocalDateTime.now(),
-                true,
-                true);
 
+        try {
+            MessageData newMessage = new MessageData(messageRequest.getMessage(),
+                    "Observer",
+                    null,
+                    null,
+                    LocalDateTime.now(),
+                    true,
+                    true);
+
+            serverDbLink.saveMessage(newMessage);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
         for(ClientData client : serverStorageData.getClients()){
             client.getOOS().writeObject(messageRequest);
         }
