@@ -13,7 +13,13 @@ public class MessageData implements Serializable {
     private boolean isPrivate;
     private boolean isFile;
 
-    public MessageData(String message, String originName, String channelTarget, String usernameTarget, LocalDateTime localDateTime, boolean isPrivate, boolean isFile) {
+    public MessageData(String message,
+                       String originName,
+                       String channelTarget,
+                       String usernameTarget,
+                       LocalDateTime localDateTime,
+                       boolean isPrivate,
+                       boolean isFile) {
         this.message = message;
         this.originName = originName;
         this.channelTarget = channelTarget;

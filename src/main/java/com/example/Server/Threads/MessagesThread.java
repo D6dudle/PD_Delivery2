@@ -158,18 +158,15 @@ public class MessagesThread extends Thread implements ServerUtils, Commands {
 
     private void deployMessageToObservers(MessageRequest requestFromClient) {
         if(requestFromClient.getCmd() == null || requestFromClient.getCmd().getCommand() == null || requestFromClient.getCmd().getCommand() == ""){
-            System.out.println("entrei aqui 1");
             String channelName = "";
             for(ChannelData channel : newChannelData){
                 if (channel.containsClient(client)) {
                     channelName = channel.getName();
                 }
             }
-            System.out.println("entrei aqui 2 " + channelName);
             for(RemoteObserver remoteObserver : remoteObservers){
                 try {
                     if(remoteObserver.isGetNotificacao()){
-                        System.out.println("entrei aqui 3");
                         remoteObserver.printNotificacao(requestFromClient, channelName);
                     }
 
@@ -187,6 +184,7 @@ public class MessagesThread extends Thread implements ServerUtils, Commands {
      */
     private void deployMessageTo(MessageRequest requestFromClient) throws SQLException {
         MessageData newMessage;
+
         for (ChannelData channel : newChannelData) {
             if (channel.containsClient(client)) {
                 if (requestFromClient.getCmd() != null && (requestFromClient.getCmd().getCommand().equals(SEND_FILE_CMD) || requestFromClient.getCmd().getCommand().equals(GET_FILE_CMD)))

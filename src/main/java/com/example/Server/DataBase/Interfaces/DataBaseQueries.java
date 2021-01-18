@@ -36,6 +36,15 @@ public interface DataBaseQueries {
             " FROM " + MESSAGE_TABLE_NAME +
             " WHERE " + CHANNEL_ID + " = ?";
 
+    String SELECT_ALL_MESSAGES = "SELECT " + MESSAGE_TEXT +
+            ", " + MESSAGE_USER_ID_ORIGIN +
+            ", " + CHANNEL_ID +
+            ", " + MESSAGE_USER_ID_DESTINY +
+            ", "  + MESSAGE_DATE_TIME +
+            " FROM " + MESSAGE_TABLE_NAME +
+            " WHERE " + MESSAGE_IS_FILE + " = 0"+
+            " ORDER BY " + MESSAGE_DATE_TIME + " DESC";
+
     String SELECT_ALL_PRIVATE_MESSAGES = "SELECT " + MESSAGE_TEXT +
             ", " + MESSAGE_USER_ID_ORIGIN +
             ", " + MESSAGE_USER_ID_DESTINY +
@@ -90,4 +99,12 @@ public interface DataBaseQueries {
             ", " + CHANNEL_USER_ID_OWNER +
             " FROM " + CHANNEL_TABLE_NAME +
             " WHERE " + CHANNEL_ID + " = ?";
+
+    String SELECT_NOT_SENT_MESSAGES = "SELECT " + MESSAGE_TEXT +
+            ", " + MESSAGE_USER_ID_ORIGIN +
+            ", " + CHANNEL_ID +
+            ", " + MESSAGE_USER_ID_DESTINY +
+            ", "  + MESSAGE_DATE_TIME +
+            " FROM " + MESSAGE_TABLE_NAME +
+            " WHERE " + MESSAGE_IS_REST + " = 0 AND " + MESSAGE_USER_ID_ORIGIN + " = 0";
 }

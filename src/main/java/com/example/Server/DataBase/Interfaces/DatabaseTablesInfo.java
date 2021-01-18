@@ -20,6 +20,7 @@ public interface DatabaseTablesInfo {
     String MESSAGE_TEXT = "messageText";
     String MESSAGE_USER_ID_DESTINY = "userIdDestiny";
     String MESSAGE_USER_ID_ORIGIN = "userIdOrigin";
+    String MESSAGE_IS_REST = "isRestMsg";
 
     String USER_ID = "userId";
     String USER_IP = "userIp";

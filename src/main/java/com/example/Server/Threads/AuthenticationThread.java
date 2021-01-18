@@ -98,7 +98,6 @@ public class AuthenticationThread extends Thread implements ServerUtils {
                         serverStorageData.getClients().add(clientData);
                         serverStorageData.getNewClientData().add(clientData);
 
-                        System.out.println("vou enviar resposta");
                         sendResponseToClient(dS, dP, authenticationResponseData);
 
                         socket = serverSocket.accept();

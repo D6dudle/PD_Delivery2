@@ -11,10 +11,23 @@ import com.example.Server.Data.MessageData;
 import com.example.Server.Data.ServerStorageData;
 import com.example.Server.Data.ServerUtils;
 import com.example.Server.DataBase.DataBaseLink;
+import com.example.Server.Rest.AuthorizationFilter;
 import com.example.Server.Threads.AuthenticationThread;
 import com.example.Server.Threads.InputTextThread;
 import com.example.Server.Threads.ManageFiles.SendFileUDPThread;
 import com.example.Server.Threads.PingThread;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 
 import java.io.IOException;
 import java.net.*;
@@ -25,6 +38,8 @@ import java.rmi.server.UnicastRemoteObject;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 
+@ComponentScan(basePackages = {"com.example.Server.Rest.Controllers"})
+@SpringBootApplication
 public class Server extends UnicastRemoteObject implements RemoteServer, ServerUtils {
 
     private ServerStorageData serverStorageData;
@@ -35,8 +50,29 @@ public class Server extends UnicastRemoteObject implements RemoteServer, ServerU
     protected Server() throws RemoteException, SQLException {
     }
 
-    public static void main(String[] args) throws RemoteException, SQLException {
+    @EnableWebSecurity
+    @Configuration
+    class WebSecurityConfig extends WebSecurityConfigurerAdapter
+    {
+        @Override
+        protected void configure(HttpSecurity http) throws Exception
+        {
+            http.csrf().disable()
+                    .addFilterAfter(new AuthorizationFilter(),
+                            UsernamePasswordAuthenticationFilter.class)
+                    .authorizeRequests()
+                    .antMatchers(HttpMethod.POST, "/rest-user/login").permitAll()
+                    .antMatchers(HttpMethod.GET, "/rest-messages/get-last-n").permitAll()
+                    .antMatchers(HttpMethod.POST, "/rest-messages/deploy-message").permitAll()
+                    .anyRequest().authenticated().and()
+                    .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                    .and().exceptionHandling().authenticationEntryPoint(
+                    new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));
+        }
+    }
 
+    public static void main(String[] args) throws RemoteException, SQLException {
+        SpringApplication.run(Server.class, args);
         Server s = new Server();
 
         Registry registry = LocateRegistry.createRegistry(Registry.REGISTRY_PORT);
@@ -135,7 +171,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, ServerU
 
                     serverStorageData.getRemoteObservers().add(remoteObserver);
 
-                System.out.println("serverStorageData.getRemoteObservers() --->" + serverStorageData.getRemoteObservers());
+                //System.out.println("serverStorageData.getRemoteObservers() --->" + serverStorageData.getRemoteObservers());
                 return true;
             }
             else{
@@ -207,4 +243,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, ServerU
     public boolean isRegistered(AuthenticationRequestData authenticationRequestData) throws SQLException {
         return serverDbLink.isRegistered(authenticationRequestData.getUsername());
     }
+
+
+
 }

@@ -169,7 +169,9 @@ public class DataBaseLink implements DataBaseUtils, DataBaseQueries, InsertQueri
      * @param channelDescription
      * @throws SQLException
      */
-    public void editChannelById(long channelId, String newChannelName, String channelDescription) throws SQLException {
+    public void editChannelById(Long channelId, String newChannelName, String channelDescription) throws SQLException {
+        if(channelId == null || channelId == 0)
+            return;
         PreparedStatement ps = dbConnection.prepareStatement(UPDATE_CHANNEL_NAME_DESCRIPTION);
         ps.setString(1, newChannelName);
         ps.setString(2, channelDescription);
@@ -221,7 +223,10 @@ public class DataBaseLink implements DataBaseUtils, DataBaseQueries, InsertQueri
      * @return user id
      * @throws SQLException
      */
-    private String getUserNameById(long userId) throws SQLException {
+    private String getUserNameById(Long userId) throws SQLException {
+        if(userId == null || userId == 0)
+            return null;
+
         PreparedStatement ps = dbConnection.prepareStatement(SELECT_USER_NAME_BY_ID);
         ps.setLong(1, userId);
 
@@ -302,7 +307,9 @@ public class DataBaseLink implements DataBaseUtils, DataBaseQueries, InsertQueri
      * @return channel id
      * @throws SQLException
      */
-    private String getChannelNameById(long channelId) throws SQLException {
+    private String getChannelNameById(Long channelId) throws SQLException {
+        if(channelId == null || channelId == 0)
+            return null;
         PreparedStatement ps = dbConnection.prepareStatement(SELECT_CHANNEL_NAME_BY_ID);
         ps.setLong(1, channelId);
 
@@ -333,6 +340,25 @@ public class DataBaseLink implements DataBaseUtils, DataBaseQueries, InsertQueri
             ps.setNull(5, Types.INTEGER);
         }
         ps.setInt(6, message.isFile() ? 1 : 0);
+        ps.setInt(7, 1); // sent
+
+        ps.executeUpdate();
+        ps.close();
+    }
+
+    /**
+     * Saves a rest message in the database
+     * @param message
+     */
+    public void saveRestMessage(MessageData message) throws SQLException {
+        PreparedStatement ps = dbConnection.prepareStatement(INSERT_MESSAGE);
+        ps.setString(1, message.getMessage());
+        ps.setString(2, getMessageStrToDatabase(message.getLocalDateTime()));
+        ps.setLong(3, 0);
+        ps.setNull(4, Types.INTEGER);
+        ps.setNull(5, Types.INTEGER);
+        ps.setInt(6, message.isFile() ? 1 : 0);
+        ps.setInt(7, 0); // not sent
 
         ps.executeUpdate();
         ps.close();
@@ -635,5 +661,56 @@ public class DataBaseLink implements DataBaseUtils, DataBaseQueries, InsertQueri
             channelsStatistics.add("This channel does not exists!");
         }
         return channelsStatistics;
+    }
+
+    /**
+     *
+     * @param nMessages
+     * @return
+     * @throws SQLException
+     */
+    public List<MessageData> getLastNMessages(int nMessages) throws SQLException {
+        PreparedStatement ps = dbConnection.prepareStatement(SELECT_ALL_MESSAGES);
+
+        List<MessageData> messages = new ArrayList<>();
+        ResultSet rSet = ps.executeQuery();
+        while (rSet.next()) {
+            messages.add(new MessageData(
+                    rSet.getString(1),
+                    getUserNameById(rSet.getLong(2)),
+                    getChannelNameById(rSet.getLong(3)),
+                    getUserNameById(rSet.getLong(4)),
+                    LocalDateTime.parse(rSet.getString(5), DateTimeFormatter.ofPattern(DATE_DATABASE_FORMAT)),
+                    false,
+                    false
+            ));
+            if(messages.size() >= nMessages) break;
+        }
+        ps.close();
+        return messages;
+    }
+
+    public List<MessageData> getUnsentMessages() throws SQLException {//UPDATE_MESSAGES_AS_SENT
+        PreparedStatement ps = dbConnection.prepareStatement(SELECT_NOT_SENT_MESSAGES);
+        ResultSet rSet = ps.executeQuery();
+        List<MessageData> messages = new ArrayList<>();
+
+        while (rSet.next()) {
+            messages.add(new MessageData(
+                    rSet.getString(1),
+                    "restApi",
+                    null,
+                    "global",
+                    LocalDateTime.parse(rSet.getString(5), DateTimeFormatter.ofPattern(DATE_DATABASE_FORMAT)),
+                    false,
+                    false
+            ));
+        }
+
+        return messages;
+    }
+    public void markMessageAsSent() throws SQLException {//UPDATE_MESSAGES_AS_SENT
+        PreparedStatement ps = dbConnection.prepareStatement(UPDATE_MESSAGES_AS_SENT);
+        ps.executeUpdate();
     }
 }

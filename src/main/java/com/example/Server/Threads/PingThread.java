@@ -78,8 +78,6 @@ public class PingThread extends Thread implements ServerUtils {
                 //Debug
                 //System.out.println("\nEnviei: " + pingRequestData.toString() + ", para: " + " (" + dP.getAddress().getHostAddress() + ":" + dP.getPort() + ")");
 
-                //TODO: tornar o seguinte codigo noutra Thread
-
                 // Wait for other pings
                 dP = new DatagramPacket(new byte[10000], 10000);
                 mSocket.receive(dP);
@@ -97,7 +95,7 @@ public class PingThread extends Thread implements ServerUtils {
                     serverStorageData.getRedirectControl().setPortUDPRedirect(pingRequestData.getPortUDP());
 
                     //Debug
-                    System.out.println("\nRecebi:" + pingRequestData.toString() + ", de: " + " (" + dP.getAddress().getHostAddress() + ":" + dP.getPort() + ")");
+                    //System.out.println("\nRecebi:" + pingRequestData.toString() + ", de: " + " (" + dP.getAddress().getHostAddress() + ":" + dP.getPort() + ")");
 
                     // Verifies if it's the first ping, if not, update this server information
                     for (ServerControlData serverControlData : serverStorageData.getControlDataOtherServers()) {
@@ -123,13 +121,12 @@ public class PingThread extends Thread implements ServerUtils {
                 }
 
                 sleep(2000);
-
+                sendRestMessages();
                 clearNewFilesFromClients(serverStorageData.getClients());
             }
             //serverDbLink.close();
         } catch (IOException | ClassNotFoundException | SQLException | InterruptedException e) {
             if(e.getCause() instanceof SocketTimeoutException) {
-                //TODO: timeout nao funfa pq lê de si proprio
                 System.out.println("Timeout MulticastSocket");
             }
             else{
@@ -303,8 +300,8 @@ public class PingThread extends Thread implements ServerUtils {
             for(ChannelData channelSave : serverStorageData.getChannels()){
                 if(channel.getName().equals(channelSave.getName())){
                     channelSave.getChat().addAll(channel.getChat()); //adds new messages
-                    channelSave.getClients().clear(); //clears old clients
-                    channelSave.getClients().addAll(channel.getClients()); //add remaining clients in chat + new clients
+                    //channelSave.getClients().clear(); //clears old clients
+                    //channelSave.getClients().addAll(channel.getClients()); //add remaining clients in chat
                     channel.getChat().clear(); //clears new messages
                     newChannel = false;
                     break;
@@ -402,8 +399,6 @@ public class PingThread extends Thread implements ServerUtils {
             }
 
             if(newChannel){
-
-
                 ChannelData tempChannel = new ChannelData(channelDataFromOtherServer.getChannelId(),
                         channelDataFromOtherServer.getName(),
                         channelDataFromOtherServer.getPassword(),
@@ -415,6 +410,7 @@ public class PingThread extends Thread implements ServerUtils {
                         tempChannel.getPassword(),
                         tempChannel.getDescription(),
                         tempChannel.getCreatorName());
+
 
                 serverStorageData.getChannels().add(tempChannel);
                 serverStorageData.getNewChannelData().add(tempChannel2);
@@ -465,5 +461,26 @@ public class PingThread extends Thread implements ServerUtils {
                 usernameTarget,
                 isSuccess,
                 cmd);
+    }
+
+    private void sendRestMessages(){
+        try {
+            List<MessageData> messagesToSend = serverDbLink.getUnsentMessages();
+            if(messagesToSend.size() <= 0) return;
+            for(MessageData messageData : messagesToSend){
+                for(ClientData clientData : serverStorageData.getNewClientData()){
+                    clientData.getOOS().writeObject(new MessageRequest(messageData.getMessage(),
+                            messageData.getOriginName(),
+                            LocalDateTime.now(),
+                            messageData.getUsernameTarget(),
+                            true,
+                            null
+                    ));
+                }
+            }
+            serverDbLink.markMessageAsSent();
+        } catch (SQLException | IOException e) {
+            e.printStackTrace();
+        }
     }
 }

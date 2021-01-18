@@ -14,7 +14,7 @@ public interface InsertQueries {
 
     String INSERT_MESSAGE = "INSERT INTO " + MESSAGE_TABLE_NAME +
             " (" + MESSAGE_TEXT + ", " + MESSAGE_DATE_TIME + ", " + MESSAGE_USER_ID_ORIGIN +
-            ", " + MESSAGE_USER_ID_DESTINY + ", " + CHANNEL_ID + ", " + MESSAGE_IS_FILE + ")" +
-            " VALUES (?, ?, ?, ?, ?, ?)";
+            ", " + MESSAGE_USER_ID_DESTINY + ", " + CHANNEL_ID + ", " + MESSAGE_IS_FILE +  ", " + MESSAGE_IS_REST + ")" +
+            " VALUES (?, ?, ?, ?, ?, ?, ?)";
 
 }

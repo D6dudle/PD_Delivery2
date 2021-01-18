@@ -1,16 +1,10 @@
-package com.example.Server.Controllers;
+package com.example.Server.Rest.Controllers;
 
 
-import Data.AuthenticationRequestData;
-import Data.AuthenticationResponseData;
 import ModelsRestApi.RestUser;
-import com.example.Server.Data.ClientData;
 import com.example.Server.DataBase.DataBaseLink;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLException;
 
@@ -19,34 +13,37 @@ import java.sql.SQLException;
 public class RestUserController {
     private DataBaseLink dataBaseLink;
 
-    @Autowired
-    public RestUserController(DataBaseLink dataBaseLink){
-        this.dataBaseLink = dataBaseLink;
-    }
-
-    /*
-
-    public RestUserController(){
+    public RestUserController() throws SQLException {
         this.dataBaseLink = new DataBaseLink();
     }
 
+    /**
+     *
+     * @param username
+     * @param password
+     * @param userIp
+     * @return
      */
-
     @PostMapping("login")
-    public boolean login(@RequestBody RestUser restUser) {
+    public RestUser login(@RequestParam(value="username") String username,
+                          @RequestParam(value="password") String password,
+                          @RequestParam(value="userIp") String userIp) {
+        RestUser restUser = new RestUser(username, password, userIp);
         try {
             if (isPasswordValid(restUser.getUsername(), restUser.getPassword())) {
                     dataBaseLink.updateUser(restUser.getUsername(), restUser.getUserIp());
-                return true;
+
+                restUser.setToken(restUser.getUsername() + "_logged");
             }
             else {
-                return false;
+                restUser.setToken(restUser.getUsername() + "_notLogged");
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
-            return false;
+            restUser.setToken(restUser.getUsername() + "_notLogged");
         }
 
+        return restUser;
     }
 
     /**

@@ -20,4 +20,8 @@ public interface UpdateQueries {
     String UPDATE_USER_IP = "UPDATE " + USER_TABLE_NAME +
             " SET " + USER_IP + " = ?" +
             " WHERE " + USER_ID + " = ?";
+
+    String UPDATE_MESSAGES_AS_SENT = "UPDATE " + MESSAGE_TABLE_NAME +
+            " SET " + MESSAGE_IS_REST + " = 1" +
+            " WHERE " + MESSAGE_IS_REST + " = 0";
 }

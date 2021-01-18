@@ -6,6 +6,12 @@ public class RestUser {
     private String userIp;
     private String token;
 
+    public RestUser(String username, String password, String userIp) {
+        this.username = username;
+        this.password = password;
+        this.userIp = userIp;
+    }
+
     public String getUsername() {
         return username;
     }
