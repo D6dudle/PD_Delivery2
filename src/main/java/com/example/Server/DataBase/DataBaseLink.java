@@ -709,8 +709,20 @@ public class DataBaseLink implements DataBaseUtils, DataBaseQueries, InsertQueri
 
         return messages;
     }
+
     public void markMessageAsSent() throws SQLException {//UPDATE_MESSAGES_AS_SENT
         PreparedStatement ps = dbConnection.prepareStatement(UPDATE_MESSAGES_AS_SENT);
         ps.executeUpdate();
+    }
+
+    public String getUserPassword(String username) throws SQLException {
+        PreparedStatement ps = dbConnection.prepareStatement(SELECT_USER_PASSWORD);
+        ps.setString(1, username);
+        ResultSet rSet = ps.executeQuery();
+
+        rSet.next();
+        String password = rSet.getString(1);
+        ps.close();
+        return password;
     }
 }

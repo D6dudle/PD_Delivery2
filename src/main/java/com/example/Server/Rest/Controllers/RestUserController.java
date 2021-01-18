@@ -3,7 +3,10 @@ package com.example.Server.Rest.Controllers;
 
 import ModelsRestApi.RestUser;
 import com.example.Server.DataBase.DataBaseLink;
+import com.example.Server.Rest.Jwt.JwtTokenUtils;
+import com.example.Server.Rest.Jwt.JwtUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLException;
@@ -12,10 +15,15 @@ import java.sql.SQLException;
 @RequestMapping("rest-user")
 public class RestUserController {
     private DataBaseLink dataBaseLink;
+    private JwtTokenUtils jwtTokenUtils;
+    private JwtUserDetailsService jwtUserDetailsService;
 
     public RestUserController() throws SQLException {
         this.dataBaseLink = new DataBaseLink();
+        this.jwtTokenUtils = new JwtTokenUtils();
+        this.jwtUserDetailsService = new JwtUserDetailsService();
     }
+
 
     /**
      *
@@ -24,7 +32,7 @@ public class RestUserController {
      * @param userIp
      * @return
      */
-    @PostMapping("login")
+    @PostMapping("authenticate")
     public RestUser login(@RequestParam(value="username") String username,
                           @RequestParam(value="password") String password,
                           @RequestParam(value="userIp") String userIp) {
@@ -32,15 +40,15 @@ public class RestUserController {
         try {
             if (isPasswordValid(restUser.getUsername(), restUser.getPassword())) {
                     dataBaseLink.updateUser(restUser.getUsername(), restUser.getUserIp());
-
-                restUser.setToken(restUser.getUsername() + "_logged");
+                final UserDetails userDetails = jwtUserDetailsService.loadUserByUsername(username);
+                restUser.setToken(jwtTokenUtils.generateToken(userDetails));
             }
             else {
                 restUser.setToken(restUser.getUsername() + "_notLogged");
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
-            restUser.setToken(restUser.getUsername() + "_notLogged");
+            restUser.setToken("NOT_LOGGED");
         }
 
         return restUser;

@@ -107,4 +107,8 @@ public interface DataBaseQueries {
             ", "  + MESSAGE_DATE_TIME +
             " FROM " + MESSAGE_TABLE_NAME +
             " WHERE " + MESSAGE_IS_REST + " = 0 AND " + MESSAGE_USER_ID_ORIGIN + " = 0";
+
+    String SELECT_USER_PASSWORD = "SELECT " + USER_PASSWORD +
+            " FROM " + USER_TABLE_NAME +
+            " WHERE " + USER_NAME + " = ?";
 }

@@ -11,7 +11,7 @@ import com.example.Server.Data.MessageData;
 import com.example.Server.Data.ServerStorageData;
 import com.example.Server.Data.ServerUtils;
 import com.example.Server.DataBase.DataBaseLink;
-import com.example.Server.Rest.AuthorizationFilter;
+import com.example.Server.Rest.Jwt.JwtRequestFilter;
 import com.example.Server.Threads.AuthenticationThread;
 import com.example.Server.Threads.InputTextThread;
 import com.example.Server.Threads.ManageFiles.SendFileUDPThread;
@@ -58,12 +58,10 @@ public class Server extends UnicastRemoteObject implements RemoteServer, ServerU
         protected void configure(HttpSecurity http) throws Exception
         {
             http.csrf().disable()
-                    .addFilterAfter(new AuthorizationFilter(),
+                    .addFilterAfter(new JwtRequestFilter(),
                             UsernamePasswordAuthenticationFilter.class)
                     .authorizeRequests()
-                    .antMatchers(HttpMethod.POST, "/rest-user/login").permitAll()
-                    .antMatchers(HttpMethod.GET, "/rest-messages/get-last-n").permitAll()
-                    .antMatchers(HttpMethod.POST, "/rest-messages/deploy-message").permitAll()
+                    .antMatchers(HttpMethod.POST, "/rest-user/authenticate").permitAll()
                     .anyRequest().authenticated().and()
                     .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                     .and().exceptionHandling().authenticationEntryPoint(
